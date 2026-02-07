@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model users {
+  id           Int            @id @default(autoincrement())
+  name         String
+  email        String         @unique
+  password     String
+  role         roles
+  createdAt    DateTime       @default(now())
+  services     services[]
+  availability availability[]
+  appointments appointments[]
+}
+
+enum roles {
+  user
+  service_provider
+}
+
+model services {
+  id               Int            @id @default(autoincrement())
+  name             String
+  type             types
+  provierId        Int
+  provider         users          @relation(fields: [provierId], references: [id])
+  duarationMinutes Int
+  createAt         DateTime       @default(now())
+  appointments     appointments[]
+  availability     availability[]
+}
+
+enum types {
+  MEDICAL
+  HOUSE_HELP
+  BEAUTY
+  FITNESS
+  EDUCATION
+  OTHER
+}
+
+model availability {
+  id         Int    @id @default(autoincrement())
+  providerId Int
+  provider   users  @relation(fields: [providerId], references: [id])
+  dayOfWeek  Int
+  startTime  String
+  endTime    String
+  serviceId  Int
+  service    services @relation(fields: [serviceId], references: [id])
+}
+
+model appointments {
+  id        Int               @id @default(autoincrement())
+  userId    Int
+  serviceId Int
+  date      DateTime
+  startTime String
+  endTime   String
+  slotId    Int
+  status    appointmentStatus
+  user      users             @relation(fields: [userId], references: [id])
+  service   services          @relation(fields: [serviceId], references: [id])
+}
+
+enum appointmentStatus {
+  BOOKED
+  CANCELLED
+}
